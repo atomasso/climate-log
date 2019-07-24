@@ -12,7 +12,7 @@
           <slot name="modal-body"></slot>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary">Insert Data Point</button>
+          <button type="button" class="btn btn-primary" @click="insert">Insert</button>
           <button type="button" class="btn btn-secondary" @click="close">Close</button>
         </div>
       </div>
@@ -30,6 +30,9 @@ export default {
   methods: {
     close() {
       this.$emit('close');
+    },
+    insert() {
+      this.$emit('insert');
     }
   }
 }
@@ -48,11 +51,13 @@ export default {
   align-items: center;
 }
 .modal-content {
+  max-height: 100%;
   background: #ffffff;
   box-shadow: 2px 2px 20px 1px;
   overflow-x: auto;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 .modal-fade-enter, .modal-fade-leave-active {
   opacity: 0;

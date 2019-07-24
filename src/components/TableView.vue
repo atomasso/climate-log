@@ -2,10 +2,18 @@
   <div class="container main">
     <h2>Table View</h2>
     <br>    
-    <InputParameters />  
+    <InputParameters
+      @changeDataType="updateDataType($event)"
+      @changePeriod="updatePeriod($event)" 
+      @changeCountry="updateCountry($event)" 
+    />
+    <br>
+    <h5 v-if="dataType === 'tas'">Table with temperature data in degrees Celsius</h5>
+    <h5 v-else>Table with precipitation data in millimeters values</h5>
     <table class="table table-hover">
       <thead>
         <tr>
+          <th scope="col">#</th>
           <th scope="col">GCM</th>
           <th scope="col"
             v-for="(month, index) in months"
@@ -16,30 +24,70 @@
         </tr>
       </thead>
       <tbody>
-        <tr class="table-active"
+        <!-- data from API -->
+        <tr class="table-danger"
           v-for="(item, index1) in apiResponse"
           :key="index1"
         >
+          <th scope="row">{{ index1 + 1 }}</th>
           <th scope="row">{{ item.gcm }}</th>
           <td
             v-for="(monthVal, index2) in item.monthVals"
             :key="index2"
           >
-            {{ monthVal }}
+            {{ monthVal.toFixed(5) }}
           </td>
         </tr>
+        <!-- data from local store -->
+        <!-- <tr class="table-success"
+          v-for="(item, index3) in filteredDataPoints"
+          :key="index3"
+        >
+          <th scope="row">{{ index3 + 16 }}</th>
+          <th scope="row">{{ item.gcm }}</th>
+          <td
+            v-for="(monthVal, index4) in item.monthVals"
+            :key="index4"
+          >
+            {{ monthVal.toFixed(5) }}
+          </td>
+        </tr> -->
       </tbody>
     </table>
     <button type="button" class="btn btn-primary" @click="showModal">Insert Data</button>
-    <Modal v-show="isModalVisible" @close="closeModal">
+    <Modal v-show="isModalVisible" @insert="insertData" @close="closeModal">
       <div slot="modal-header">
-        <h5 class="modal-title">Enter new data point- monthly average</h5>
+        <h5 class="modal-title">Create new data point - Monthly average</h5>
+        <div class="form-group">
+          <label class="col-form-label" for="inputDefault">New custom model name</label>
+          <input type="text" class="form-control" placeholder="e.g. My best model" id="customModel" v-model="newDataPoint">
+        </div>
       </div>
-      <div v-if="temperatureView" slot="modal-body">
-        <input>
+      <div v-if="dataType === 'tas'" slot="modal-body">
+        <p>Insert monthly temperature average, in degrees Celsius</p>
+        <div
+          v-for="(month, index) in months"
+          :key="index"
+          class="input-group mb-3"
+        >
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">{{ month }}</span>
+          </div>
+          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+        </div>
       </div>
       <div v-else slot="modal-body">
-        <input>
+        <p>Insert monthly precipitation average, in millimeters</p>
+        <div
+          v-for="(month, index) in months"
+          :key="index"
+          class="input-group mb-3"
+        >
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="">{{ month }}</span>
+          </div>
+          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+        </div>
       </div>
     </Modal>
   </div>
@@ -49,6 +97,7 @@
 import APIService from '@/APIService';
 import Modal from '@/components/Modal';
 import InputParameters from '@/components/InputParameters';
+import { dataPointsStore } from '@/store/modules/dataPointsStore';
 
 export default {
   name: 'TableView',
@@ -58,31 +107,92 @@ export default {
   },
   data() {
     return {
-      apiResponse: [],
+      apiResponse: [],    
       months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       isModalVisible: false,
-      temperatureView: true
+      dataType: 'tas',
+      startPeriod: '1920',
+      endPeriod: '1939',
+      country: 'HRV',
+      newDataPoint: ''
     }
   },
+  computed: {
+    
+  },
   methods: {   
+    insertData() {
+      console.log(this.newDataPoint)
+    },
+    async updatePeriod(updatedPeriod) {
+      this.startPeriod = updatedPeriod[0];
+      this.endPeriod = updatedPeriod[1];
+     
+      this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
+     
+      const dataPoints = dataPointsStore.fetchDataPoints();        
+      this.addDataPoints(dataPoints); 
+    },
+    async updateCountry(updatedCountry) {
+      this.country = updatedCountry;
+
+      this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
+     
+      const dataPoints = dataPointsStore.fetchDataPoints();        
+      this.addDataPoints(dataPoints); 
+    },    
+    async updateDataType(updatedType) {
+      this.dataType = updatedType;
+
+      this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
+     
+      const dataPoints = dataPointsStore.fetchDataPoints();        
+      this.addDataPoints(dataPoints); 
+    },
+    addDataPoints(dataPoints) {
+      dataPoints.forEach(element => {    
+        if (element.country === this.country && element.startPeriod ===   this.startPeriod && element.endPeriod === this.endPeriod && element.dataType === this.dataType) {
+          element.data.forEach(dataPoint => {
+            this.apiResponse.push({
+              gcm: dataPoint.model,
+              variable: element.dataType,
+              fromYear: this.startPeriod,
+              toYear: this.endPeriod,
+              monthVals: dataPoint.values
+            });
+          });        
+        }
+      });  
+    },
     showModal() {
       this.isModalVisible = true;
+      // When the modal is shown, we want a fixed body
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
     },
     closeModal() {
       this.isModalVisible = false;
+      // When the modal is hidden, we want to remain at the top of the scroll position
+      document.body.style.position = '';
+      document.body.style.top = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
   },
-  async created() {
-    this.apiResponse = await APIService.fetchData('HRV', '1920', '1939', 'mavg', 'tas');
+  async created() {   
+    this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
+
+    const dataPoints = dataPointsStore.fetchDataPoints();        
+    this.addDataPoints(dataPoints);      
   }
 }
 </script>
 
 <style>
 .main {
-  padding-top: 40px;
+  padding: 40px;
 }
-.modalDisplayed {
-  background-color: rgba(0, 0, 0, 0.3) !important;
+
+input.form-control {
+  width: 50%;
 }
 </style>
