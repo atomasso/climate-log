@@ -1,6 +1,10 @@
 # climate-log
 
 ## Project setup
+Ensure that you have the latest versons of Node and npm in order to run the app.
+Download the repo from GitHub
+cd into the repo folder
+Install npm packages:
 ```
 npm install
 ```
@@ -15,15 +19,3 @@ npm run serve
 npm run build
 ```
 
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
