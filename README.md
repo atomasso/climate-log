@@ -1,9 +1,9 @@
 # climate-log
 
 ## Project setup
-Ensure that you have the latest versons of Node and npm in order to run the app.
-Download the repo from GitHub
-cd into the repo folder
+1. Ensure that you have the latest versons of Node and npm
+2. Download the repo from GitHub
+3. cd into the repo folder
 Install npm packages:
 ```
 npm install
