@@ -74,7 +74,7 @@ export default {
           endPeriod = '1999';
           break;
       }
-      console.log(startPeriod, endPeriod);
+    
       this.$emit('changePeriod', [startPeriod, endPeriod]);
     },
     setCountry(event) {

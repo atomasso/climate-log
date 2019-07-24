@@ -63,6 +63,7 @@
           <input type="text" class="form-control" placeholder="e.g. My best model" id="customModel" v-model="newDataPoint">
         </div>
       </div>
+      <!-- modal input section for temperature values -->
       <div v-if="dataType === 'tas'" slot="modal-body">
         <p>Insert monthly temperature average, in degrees Celsius</p>
         <div
@@ -73,9 +74,10 @@
           <div class="input-group-prepend">
             <span class="input-group-text" id="">{{ month }}</span>
           </div>
-          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" v-model="temperatureInputs[index]">
         </div>
       </div>
+      <!-- modal input section for precipitation values -->
       <div v-else slot="modal-body">
         <p>Insert monthly precipitation average, in millimeters</p>
         <div
@@ -107,6 +109,7 @@ export default {
   },
   data() {
     return {
+      temperatureInputs: [],
       apiResponse: [],    
       months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       isModalVisible: false,
@@ -122,7 +125,24 @@ export default {
   },
   methods: {   
     insertData() {
-      console.log(this.newDataPoint)
+      // convert string array to number array
+      const tempInputs = this.temperatureInputs.map(element => {
+        return Number(element);
+      });
+
+      // insert data to store
+      dataPointsStore.addDataPoint(this.newDataPoint, this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType, tempInputs);
+
+      // insert data to local array for display
+      this.apiResponse.push({
+        gcm: this.newDataPoint,
+        variable: this.dataType,
+        fromYear: this.startPeriod,
+        toYear: this.endPeriod,
+        monthVals: tempInputs
+      });
+ 
+      this.closeModal();
     },
     async updatePeriod(updatedPeriod) {
       this.startPeriod = updatedPeriod[0];
@@ -131,7 +151,7 @@ export default {
       this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
      
       const dataPoints = dataPointsStore.fetchDataPoints();        
-      this.addDataPoints(dataPoints); 
+      this.pushNewDataPoints(dataPoints); 
     },
     async updateCountry(updatedCountry) {
       this.country = updatedCountry;
@@ -139,7 +159,7 @@ export default {
       this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
      
       const dataPoints = dataPointsStore.fetchDataPoints();        
-      this.addDataPoints(dataPoints); 
+      this.pushNewDataPoints(dataPoints); 
     },    
     async updateDataType(updatedType) {
       this.dataType = updatedType;
@@ -147,9 +167,9 @@ export default {
       this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
      
       const dataPoints = dataPointsStore.fetchDataPoints();        
-      this.addDataPoints(dataPoints); 
+      this.pushNewDataPoints(dataPoints); 
     },
-    addDataPoints(dataPoints) {
+    pushNewDataPoints(dataPoints) {
       dataPoints.forEach(element => {    
         if (element.country === this.country && element.startPeriod ===   this.startPeriod && element.endPeriod === this.endPeriod && element.dataType === this.dataType) {
           element.data.forEach(dataPoint => {
@@ -166,6 +186,7 @@ export default {
     },
     showModal() {
       this.isModalVisible = true;
+      this.newDataPoint = '';
       // When the modal is shown, we want a fixed body
       document.body.style.position = 'fixed';
       document.body.style.top = `-${window.scrollY}px`;
@@ -182,7 +203,7 @@ export default {
     this.apiResponse = await APIService.fetchData(this.country, this.startPeriod, this.endPeriod, 'mavg', this.dataType);
 
     const dataPoints = dataPointsStore.fetchDataPoints();        
-    this.addDataPoints(dataPoints);      
+    this.pushNewDataPoints(dataPoints);      
   }
 }
 </script>

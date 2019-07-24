@@ -23,7 +23,7 @@ export const dataPointsStore = {
       country: 'HRV',
       startPeriod: '1920',
       endPeriod: '1939',
-      dataType: 'pr',
+      dataType: 'tas',
       data: [
         {
           model: 'model3',
@@ -36,6 +36,34 @@ export const dataPointsStore = {
   },
   fetchDataPoints() {
     return this.state.dataPoints;
+  },
+  addDataPoint(model, country, startPeriod, endPeriod, viewType, dataType, monthlyValues) {
+    let existingElement = false;
+    this.state.dataPoints.forEach(element => {
+      // add new data point to the existing object in the store
+      if (element.country === this.country && element.startPeriod ===   this.startPeriod && element.endPeriod === this.endPeriod && element.dataType === this.dataType) {
+        element.data.push({
+          model,
+          viewType,        
+          monthlyValues
+        });        
+        existingElement = true;      
+      } 
+    }); 
+    // create new object in the store and add new data point to it
+    if(!existingElement) {     
+      this.state.dataPoints.push({
+        country,
+        startPeriod,
+        endPeriod,
+        dataType,
+        data: [{
+          model,
+          viewType,        
+          values: monthlyValues 
+        }]     
+      });
+    }
   }
 };
 
