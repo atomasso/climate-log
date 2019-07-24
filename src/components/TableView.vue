@@ -74,7 +74,7 @@
           <div class="input-group-prepend">
             <span class="input-group-text" id="">{{ month }}</span>
           </div>
-          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" v-model="temperatureInputs[index]">
+          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" v-model="userInputs[index]">
         </div>
       </div>
       <!-- modal input section for precipitation values -->
@@ -88,7 +88,7 @@
           <div class="input-group-prepend">
             <span class="input-group-text" id="">{{ month }}</span>
           </div>
-          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+          <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3" v-model="userInputs[index]">
         </div>
       </div>
     </Modal>
@@ -109,7 +109,7 @@ export default {
   },
   data() {
     return {
-      temperatureInputs: [],
+      userInputs: [],
       apiResponse: [],    
       months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       isModalVisible: false,
@@ -126,7 +126,7 @@ export default {
   methods: {   
     insertData() {
       // convert string array to number array
-      const tempInputs = this.temperatureInputs.map(element => {
+      const tempInputs = this.userInputs.map(element => {
         return Number(element);
       });
 
